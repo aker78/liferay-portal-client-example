@@ -1,0 +1,2 @@
+Liferay Portal Client Example
+=====================================
