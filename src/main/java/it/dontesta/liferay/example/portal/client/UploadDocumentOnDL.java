@@ -32,7 +32,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.liferay.client.soap.portal.kernel.repository.model.FileEntrySoap;
+import com.liferay.client.soap.portal.model.CompanySoap;
+import com.liferay.client.soap.portal.model.GroupSoap;
 import com.liferay.client.soap.portal.service.ServiceContext;
+import com.liferay.client.soap.portal.service.http.CompanyServiceSoap;
+import com.liferay.client.soap.portal.service.http.CompanyServiceSoapServiceLocator;
+import com.liferay.client.soap.portal.service.http.GroupServiceSoap;
+import com.liferay.client.soap.portal.service.http.GroupServiceSoapService;
+import com.liferay.client.soap.portal.service.http.GroupServiceSoapServiceLocator;
 import com.liferay.client.soap.portal.service.http.Portal_UserServiceSoapBindingStub;
 import com.liferay.client.soap.portal.service.http.UserServiceSoap;
 import com.liferay.client.soap.portal.service.http.UserServiceSoapServiceLocator;
@@ -41,19 +48,22 @@ import com.liferay.client.soap.portlet.documentlibrary.service.http.DLAppService
 
 public class UploadDocumentOnDL {
 
-	static final Logger LOGGER = LoggerFactory.getLogger(UploadDocumentOnDL.class);
-	
+	static final Logger LOGGER = LoggerFactory
+			.getLogger(UploadDocumentOnDL.class);
+
 	static final String LIFERAY_USER_NAME = "will";
 	static final String LIFERAY_USER_PASSWORD = "will";
-	static final long LIFERAY_COMPANY_ID = 1L;
-	static final long LIFERAY_REPOSITORY_ID = 19L;
-	static final long LIFERAY_FOLDER_ID = 13001L;
+
+	static final long LIFERAY_FOLDER_ID = 0L;
+	static final String LIFERAY_PUBLISH_SITE = "Guest";
 
 	static final String DL_DLAPP_SERVICE = "Portlet_DL_DLAppService";
 	static final String USER_SERVICE = "Portal_UserService";
+	static final String COMPANY_SERVICE = "Portal_CompanyService";
+	static final String GROUP_SERVICE = "Portal_GroupService";
 
 	static final String FILE_TO_UPLOAD = "/Users/amusarra/Documents/xml_oracle.pdf";
-	
+
 	/**
 	 * @param args
 	 */
@@ -63,9 +73,13 @@ public class UploadDocumentOnDL {
 					LIFERAY_USER_PASSWORD, USER_SERVICE);
 			URL dlAppServiceEndPoint = _getURL(LIFERAY_USER_NAME,
 					LIFERAY_USER_PASSWORD, DL_DLAPP_SERVICE);
+			URL companyServiceEndPoint = _getURL(LIFERAY_USER_NAME,
+					LIFERAY_USER_PASSWORD, COMPANY_SERVICE);
+			URL groupServiceEndPoint = _getURL(LIFERAY_USER_NAME,
+					LIFERAY_USER_PASSWORD, GROUP_SERVICE);
 
-			LOGGER.info("Try lookup User Service by End Point: " + userServiceEndPoint + "...");
-
+			LOGGER.info("Try lookup User Service by End Point: "
+					+ userServiceEndPoint + "...");
 			UserServiceSoapServiceLocator locatorUser = new UserServiceSoapServiceLocator();
 			UserServiceSoap userService = locatorUser
 					.getPortal_UserService(userServiceEndPoint);
@@ -74,37 +88,76 @@ public class UploadDocumentOnDL {
 					.setUsername(LIFERAY_USER_NAME);
 			((Portal_UserServiceSoapBindingStub) userService)
 					.setPassword(LIFERAY_USER_PASSWORD);
-			
-			LOGGER.info("Try lookup DL App Service by End Point: " + dlAppServiceEndPoint + "...");
+
+			LOGGER.info("Try lookup Company Service by End Point: "
+					+ companyServiceEndPoint + "...");
+			CompanyServiceSoapServiceLocator locatorCompany = new CompanyServiceSoapServiceLocator();
+			CompanyServiceSoap companyService = locatorCompany
+					.getPortal_CompanyService(companyServiceEndPoint);
+			CompanySoap companySoap = companyService
+					.getCompanyByVirtualHost("localhost");
+
+			LOGGER.info("Get UserID" + "...");
+			long userId = 0;
+			userId = userService.getUserIdByScreenName(
+					companySoap.getCompanyId(), LIFERAY_USER_PASSWORD);
+			LOGGER.info("UserId for user named " + LIFERAY_USER_PASSWORD
+					+ " is " + userId);
+
+			LOGGER.info("Try lookup Group Service by End Point: "
+					+ groupServiceEndPoint + "...");
+			GroupServiceSoapService locatorGroup = new GroupServiceSoapServiceLocator();
+			GroupServiceSoap groupService = locatorGroup
+					.getPortal_GroupService(groupServiceEndPoint);
+
+			GroupSoap[] usergroups = groupService.getUserSites();
+			long groupId = 0;
+
+			for (int i = 0; i < usergroups.length; i++) {
+				if (usergroups[i].getName().equalsIgnoreCase(
+						LIFERAY_PUBLISH_SITE)) {
+					groupId = usergroups[i].getGroupId();
+					LOGGER.info("Found the group " + LIFERAY_PUBLISH_SITE
+							+ " (GroupId: " + groupId
+							+ ") to publish the document");
+				}
+			}
+
+			LOGGER.info("Try lookup DL App Service by End Point: "
+					+ dlAppServiceEndPoint + "...");
 			DLAppServiceSoapServiceLocator locatorDLApp = new DLAppServiceSoapServiceLocator();
 			DLAppServiceSoap dlAppService = locatorDLApp
 					.getPortlet_DL_DLAppService(dlAppServiceEndPoint);
-			
+
 			String sourceFileName = "xml_oracle.pdf";
 			String mimeType = "application/pdf";
 			String title = "Test file add by SOAP Service";
 			String description = "Test file add by SOAP Service";
 			String changeLog = "";
-			
+
 			ServiceContext serviceContext = new ServiceContext();
 			serviceContext.setWorkflowAction(1);
-			
-			FileEntrySoap fileEntrySoap = dlAppService.addFileEntry(
-					LIFERAY_REPOSITORY_ID, LIFERAY_FOLDER_ID, sourceFileName, mimeType, title,
-					description, changeLog, getFileAsByte(FILE_TO_UPLOAD), serviceContext);
 
-			LOGGER.info("The file " + sourceFileName + " has been correctly added to liferay");
+			FileEntrySoap fileEntrySoap = dlAppService.addFileEntry(groupId,
+					LIFERAY_FOLDER_ID, sourceFileName, mimeType, title,
+					description, changeLog, getFileAsByte(FILE_TO_UPLOAD),
+					serviceContext);
+
+			LOGGER.info("The file " + sourceFileName
+					+ " has been correctly added to liferay");
 			LOGGER.info("File Id:" + fileEntrySoap.getFileEntryId());
 			LOGGER.info("File Size: " + fileEntrySoap.getSize());
-			LOGGER.info("File Version: " +fileEntrySoap.getVersion());
-			
+			LOGGER.info("File Version: " + fileEntrySoap.getVersion());
+
 		} catch (RemoteException re) {
-			System.err.println(re.getClass().getCanonicalName() + re.getMessage());
+			System.err.println(re.getClass().getCanonicalName()
+					+ re.getMessage());
 		} catch (ServiceException se) {
-			System.err.println(se.getClass().getCanonicalName() + se.getMessage());
+			System.err.println(se.getClass().getCanonicalName()
+					+ se.getMessage());
 		}
 	}
-
+	
 	/**
 	 * Get the URL Liferay SOAP Service
 	 * 
@@ -143,15 +196,15 @@ public class UploadDocumentOnDL {
 	 */
 	private static byte[] getFileAsByte(String pathFile) {
 		File file = new File(pathFile);
-		
+
 		try {
-			 FileInputStream fin = new FileInputStream(file);
-			 byte fileContent[] = new byte[(int)file.length()];
-			 fin.read(fileContent);
-			 fin.close();
-			 
-			 return fileContent;
-		} catch (FileNotFoundException  e) {
+			FileInputStream fin = new FileInputStream(file);
+			byte fileContent[] = new byte[(int) file.length()];
+			fin.read(fileContent);
+			fin.close();
+
+			return fileContent;
+		} catch (FileNotFoundException e) {
 			System.err.println("File not found: " + e);
 		} catch (IOException e) {
 			System.err.println("Exception while reading the file: " + e);
