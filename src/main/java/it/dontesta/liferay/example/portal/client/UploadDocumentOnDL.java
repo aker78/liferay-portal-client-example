@@ -180,10 +180,10 @@ public class UploadDocumentOnDL {
 					+ URLEncoder.encode(password, "UTF-8") + "@" + LIFERAY_FQDN
 					+ ":" + LIFERAY_TCP_PORT + LIFERAY_AXIS_PATH + serviceName);
 		} catch (MalformedURLException e) {
-			System.err.println(e.getMessage());
+			LOGGER.error(e.getMessage());
 			return null;
 		} catch (UnsupportedEncodingException e) {
-			System.err.println(e.getMessage());
+			LOGGER.error(e.getMessage());
 			return null;
 		}
 	}
@@ -205,9 +205,9 @@ public class UploadDocumentOnDL {
 
 			return fileContent;
 		} catch (FileNotFoundException e) {
-			System.err.println("File not found: " + e);
+			LOGGER.error("File not found: " + e);
 		} catch (IOException e) {
-			System.err.println("Exception while reading the file: " + e);
+			LOGGER.error("Exception while reading the file: " + e);
 		}
 		return null;
 	}
