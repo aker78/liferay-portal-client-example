@@ -150,10 +150,10 @@ public class UploadDocumentOnDL {
 			LOGGER.info("File Version: " + fileEntrySoap.getVersion());
 
 		} catch (RemoteException re) {
-			System.err.println(re.getClass().getCanonicalName()
+			LOGGER.error(re.getClass().getCanonicalName()
 					+ re.getMessage());
 		} catch (ServiceException se) {
-			System.err.println(se.getClass().getCanonicalName()
+			LOGGER.error(se.getClass().getCanonicalName()
 					+ se.getMessage());
 		}
 	}
