@@ -13,10 +13,12 @@ A few days ago, I made ​​a simple example of using the Liferay Client Librar
 	$ git clone git://github.com/amusarra/liferay-portal-client-example.git
 	$ cd liferay-portal-client-example/
 	$ mvn package
+
 List 1. Clone repository and build the package
 
 	$ cd target/
 	$ java -jar portal-client-example-0.0.1-SNAPSHOT-jar-with-dependencies.jar
+
 List 2. Run the portal client example
 	
 	[00:18:15,816 INFO UploadDocumentOnDL]: Try lookup User Service by End Point: http://will:will@localhost:8080/api/secure/axis/Portal_UserService...
@@ -30,7 +32,11 @@ List 2. Run the portal client example
 	[00:18:16,922 INFO UploadDocumentOnDL]: File Id:13101
 	[00:18:16,922 INFO UploadDocumentOnDL]: File Size: 735142
 	[00:18:16,922 INFO UploadDocumentOnDL]: File Version: 1.0
+
 List 3. Show the performed tasks.
 
 ![Figure 1 – List View of the Document Library](http://musarra.files.wordpress.com/2013/05/screen-shot-2013-05-23-at-23-59-20.png)
+Figure 1 – List View of the Document Library
+
 ![Figure 2 – Detail View of the document inserted by SOAP Services](http://musarra.files.wordpress.com/2013/05/screen-shot-2013-05-23-at-23-59-45.png)
+Figure 2 – Detail View of the document inserted by SOAP Services
