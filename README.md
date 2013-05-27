@@ -10,9 +10,11 @@ A few days ago, I made ​​a simple example of using the Liferay Client Librar
 * Retrieves the GroupId of the site Guest;
 * Performs the upload of a document on the Document Library site Guest.
 
-	$ git clone git://github.com/amusarra/liferay-portal-client-example.git
-	$ cd liferay-portal-client-example/
-	$ mvn package
+<pre>	
+$ git clone git://github.com/amusarra/liferay-portal-client-example.git
+$ cd liferay-portal-client-example/
+$ mvn package
+</pre>
 
 List 1. Clone repository and build the package
 
